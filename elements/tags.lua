@@ -403,12 +403,18 @@ local OnShow = function(self)
 	end
 end
 
+-- Parse a bracketed tag
+-- Accepted formats : [tagname] or [prefix>tagname<suffix]
+--   where tagname consists only of alphanumerical, ".", ":", "-" or "_"
+-- Returns name, prefix, suffix.
+-- * name is nil in case of invalid tag,
+-- * each of prefix and suffix is either nil or a not-empty string
 local getTagName = function(tag)
-	local s = (tag:match('>+()') or 2)
-	local e = tag:match('()<+')
-	e = (e and e - 1) or -2
-
-	return tag:sub(s, e), s, e
+	local prefix, name, suffix = tag:match('^%[(.-)>([%w%.:-]+)<(.-)%]$')
+	if not name then
+		name = tag:match('^%[([%w%.:-]+)%]$')
+	end
+	return name, (prefix ~= "" and prefix or nil), (suffix ~= "" and suffix or nil)
 end
 
 local RegisterEvent = function(fontstr, event)
@@ -421,7 +427,7 @@ end
 local RegisterEvents = function(fontstr, tagstr)
 	for tag in tagstr:gmatch(_PATTERN) do
 		tag = getTagName(tag)
-		local tagevents = tagEvents[tag]
+		local tagevents = tag and tagEvents[tag]
 		if(tagevents) then
 			for event in tagevents:gmatch'%S+' do
 				RegisterEvent(fontstr, event)
@@ -476,35 +482,25 @@ local Tag = function(self, fs, tagstr)
 		for bracket in tagstr:gmatch(_PATTERN) do
 			local tagFunc = funcPool[bracket] or tags[bracket:sub(2, -2)]
 			if(not tagFunc) then
-				local tagName, s, e = getTagName(bracket)
+				local tagName, pre, ap = getTagName(bracket)
 
-				local tag = tags[tagName]
+				local tag = tagName and tags[tagName]
 				if(tag) then
-					s = s - 2
-					e = e + 2
-
-					if(s ~= 0 and e ~= 0) then
-						local pre = bracket:sub(2, s)
-						local ap = bracket:sub(e, -2)
-
+					if(pre and ap) then
 						tagFunc = function(u,r)
 							local str = tag(u,r)
 							if(str) then
 								return pre..str..ap
 							end
 						end
-					elseif(s ~= 0) then
-						local pre = bracket:sub(2, s)
-
+					elseif(pre) then
 						tagFunc = function(u,r)
 							local str = tag(u,r)
 							if(str) then
 								return pre..str
 							end
 						end
-					elseif(e ~= 0) then
-						local ap = bracket:sub(e, -2)
-
+					elseif(ap) then
 						tagFunc = function(u,r)
 							local str = tag(u,r)
 							if(str) then
