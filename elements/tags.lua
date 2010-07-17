@@ -410,7 +410,7 @@ end
 -- * name is nil in case of invalid tag,
 -- * each of prefix and suffix is either nil or a not-empty string
 local getTagName = function(tag)
-	local prefix, name, suffix = tag:match('^%[(.-)>([%w%.:-]+)<(.-)%]$')
+	local prefix, name, suffix = tag:match('^%[(.*)>([%w%.:-]+)<(.*)%]$')
 	if not name then
 		name = tag:match('^%[([%w%.:-]+)%]$')
 	end
