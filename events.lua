@@ -5,6 +5,7 @@ local Private = oUF.Private
 local argcheck = Private.argcheck
 local error = Private.error
 local validateEvent = Private.validateEvent
+local validateUnitEvent = Private.validateUnitEvent
 local validateUnit = Private.validateUnit
 local frame_metatable = Private.frame_metatable
 
@@ -134,7 +135,7 @@ function frame_metatable.__index:RegisterEvent(event, func, unitless)
 
 		if(unitless or self.__eventless) then
 			registerEvent(self, event)
-		else
+		elseif(validateUnitEvent(event)) then
 			self.unitEvents = self.unitEvents or {}
 			self.unitEvents[event] = true
 

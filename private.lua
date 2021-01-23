@@ -78,3 +78,12 @@ function Private.validateEvent(event)
 
 	return isOK
 end
+
+function Private.validateUnitEvent(event)
+	local isOK = xpcall(validator.RegisterUnitEvent, errorHandler, validator, event, "player")
+	if(isOK) then
+		validator:UnregisterEvent(event)
+	end
+
+	return isOK
+end
